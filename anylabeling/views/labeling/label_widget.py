@@ -10,7 +10,7 @@ import darkdetect
 import imgviz
 import natsort
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSlot, QThread
 from PyQt5.QtWidgets import (
     QDockWidget,
     QHBoxLayout,
@@ -20,6 +20,8 @@ from PyQt5.QtWidgets import (
     QWhatsThis,
     QMessageBox,
 )
+
+from ...utils import GenericWorker  # Import GenericWorker from utils
 
 from anylabeling.services.auto_labeling.types import AutoLabelingMode
 
@@ -48,7 +50,10 @@ LABEL_COLORMAP = imgviz.label_colormap()
 LABEL_COLORMAP[2] = LABEL_COLORMAP[1]
 LABEL_COLORMAP[1] = [0, 180, 33]
 
+from anylabeling.db_actions.get_images import *
+from anylabeling.db_actions.send_annotations import *
 
+from datetime import timedelta, datetime
 class LabelingWidget(LabelDialog):
     """The main widget for labeling images"""
 
@@ -250,6 +255,7 @@ class LabelingWidget(LabelDialog):
         # Actions
         action = functools.partial(utils.new_action, self)
         shortcuts = self._config["shortcuts"]
+
         open_ = action(
             self.tr("&Open"),
             self.open_file,
@@ -625,6 +631,22 @@ class LabelingWidget(LabelDialog):
             checked=self._config["show_texts"],
             enabled=True,
         )
+        
+        get_images_action = action(
+            self.tr("Get and Download Images"),
+            self.get_and_download_images,
+            shortcuts["get_images"],
+            "download", # Add an icon if needed
+            tip=self.tr("Fetches and downloads images from Supabase"),
+        )
+
+        send_annotations_action = action(
+            self.tr("Generate & Send Annotations"),
+            self.generate_and_send_annotations,
+            shortcuts["send_annotations"],
+            "upload",  # Add an icon if needed
+            tip=self.tr("Generates and sends annotations to Supabase"),
+        )
 
         # Languages
         select_lang_en = action(
@@ -706,7 +728,7 @@ class LabelingWidget(LabelDialog):
         self.label_list.customContextMenuRequested.connect(
             self.pop_label_list_menu
         )
-
+        
         # Store actions for further handling.
         self.actions = utils.Struct(
             save_auto=save_auto,
@@ -734,6 +756,8 @@ class LabelingWidget(LabelDialog):
             create_line_mode=create_line_mode,
             create_point_mode=create_point_mode,
             create_line_strip_mode=create_line_strip_mode,
+            get_images_action=get_images_action,
+            send_annotations_action=send_annotations_action,
             zoom=zoom,
             zoom_in=zoom_in,
             zoom_out=zoom_out,
@@ -825,6 +849,7 @@ class LabelingWidget(LabelDialog):
                 save_auto,
                 change_output_dir,
                 save_with_image_data,
+                get_images_action,
                 close,
                 delete_file,
                 None,
@@ -910,6 +935,8 @@ class LabelingWidget(LabelDialog):
             zoom,
             fit_width,
             toggle_auto_labeling_widget,
+            get_images_action,
+            send_annotations_action,
         )
 
         layout = QHBoxLayout()
@@ -2749,3 +2776,113 @@ class LabelingWidget(LabelDialog):
             self.shape_text_edit.textChanged.disconnect()
             self.shape_text_edit.setPlainText("")
             self.shape_text_edit.textChanged.connect(self.shape_text_changed)
+
+    def get_and_download_images(self):
+        if not self.may_continue():
+            return
+
+        self.script_thread = QThread()
+        self.script_worker = GenericWorker(self._get_and_download_images_thread)
+        self.setup_and_start_thread()
+        
+    def generate_and_send_annotations(self):
+        if not self.may_continue():
+            return
+
+        self.script_thread = QThread()
+        self.script_worker = GenericWorker(self._generate_and_send_annotations_thread)
+        self.setup_and_start_thread()
+            
+    def setup_and_start_thread(self):
+        """Common setup and start for a worker thread"""
+        self.script_worker.moveToThread(self.script_thread)
+        self.script_thread.started.connect(self.script_worker.run)
+        self.script_worker.finished.connect(self.script_thread.quit)
+        self.script_worker.finished.connect(self.script_worker.deleteLater)
+        self.script_thread.finished.connect(self.script_thread.deleteLater)
+
+        self.script_thread.start()
+        #self.disable_widgets() #assuming this exists for disabling relevant widgets
+
+
+        '''self.script_thread.finished.connect(
+            lambda: self.statusBar().showMessage(self.tr("Finished running scripts."))
+        )'''
+        #self.script_thread.finished.connect(lambda: self.enable_widgets())
+        
+    def _get_and_download_images_thread(self):
+        try:
+            self.statusBar().showMessage(self.tr("Fetching and downloading images..."))
+            print("Fetching and downloading images...")
+            limit_date = datetime.now() - timedelta(days=5)
+            print(f'Limit date: {limit_date}')
+            unreviewed_scans = download_unreviewed_scans(limit_date=limit_date)
+            
+            nb_images = len(unreviewed_scans["data"])
+            print(f'Found {nb_images} unreviewed scans since last check.')
+            
+            default_output_dir = self.output_dir
+            if default_output_dir is None and self.filename:
+                default_output_dir = osp.dirname(self.filename)
+            if default_output_dir is None:
+                default_output_dir = self.current_path()
+                
+            print(f"Output dir: {default_output_dir}")
+            
+            for i in range(nb_images//5):
+                print(f"Downloading images {i*5} to {(i+1)*5}")
+                batch = {"data": []}
+                if i == nb_images//5 - 1:
+                    batch['data'] = unreviewed_scans["data"][i*5:]
+                else :
+                    batch['data'] = unreviewed_scans["data"][i*5:(i+1)*5]
+                
+                download_pictures_from_table(batch, destination=default_output_dir)
+            
+                self.import_image_folder(self.last_open_dir, load=False)
+                
+                self.statusBar().showMessage(self.tr(f"Downloaded images {i*5} to {(i+1)*5}"))
+                
+            self.statusBar().showMessage(self.tr(f"Finished fetching and downloading {nb_images} images."))
+
+        except Exception as e:
+            #logging.error(f"Error getting/downloading images: {e}")
+            self.statusBar().showMessage(self.tr("Error getting/downloading images."))
+            
+            print(f"Error getting/downloading images: {e}")
+
+
+
+    def _generate_and_send_annotations_thread(self):
+        try:
+            default_output_dir = self.output_dir
+            if default_output_dir is None and self.filename:
+                default_output_dir = osp.dirname(self.filename)
+            if default_output_dir is None:
+                default_output_dir = self.current_path()
+                
+            print(f"Output dir: {default_output_dir}")
+            
+            self.statusBar().showMessage(self.tr("Generating and sending annotations..."))
+            #annotation_list = [ann_path for ann_path in os.listdir(default_output_dir) if ann_path.endswith('.json')]
+            
+            upload_all_scans(default_output_dir)
+            
+            #we refresh the image list
+            self.import_image_folder(self.last_open_dir, load=False)
+
+        except Exception as e:
+            #logging.error(f"Error generating/sending annotations: {e}")
+            self.statusBar().showMessage(self.tr("Error generating/sending annotations."))
+            
+            print(f"Error generating/sending annotations: {e}")
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    app = QApplication(sys.argv)
+    config = get_config()  # Load your config
+    lw = LabelingWidget(config=config) # You can pass filename, output_file, etc. for initial loading
+    lw.showMaximized()  # or lw.show()
+    sys.exit(app.exec_())
+        

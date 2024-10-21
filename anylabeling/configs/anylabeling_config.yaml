@@ -20,7 +20,7 @@ sort_labels: true
 validate_label: null
 
 default_shape_color: [0, 255, 0]
-shape_color: auto  # null, 'auto', 'manual'
+shape_color: auto # null, 'auto', 'manual'
 shift_auto_shape_color: 0
 label_colors: null
 
@@ -82,6 +82,8 @@ shortcuts:
   save_as: Ctrl+Shift+S
   save_to: null
   delete_file: Ctrl+Delete
+  get_images: Ctrl+K
+  send_annotations: Ctrl+Shift+K
 
   open_next: [D, Ctrl+Shift+D]
   open_prev: [A, Ctrl+Shift+A]
@@ -114,7 +116,6 @@ shortcuts:
   toggle_auto_use_last_label: Ctrl+Y
 
   auto_label: Ctrt+A
-
 
 # Auto labeling
 custom_models: []

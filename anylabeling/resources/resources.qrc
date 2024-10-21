@@ -16,6 +16,7 @@
         <file>images/copy.png</file>
         <file>images/delete.png</file>
         <file>images/done.png</file>
+        <file>images/download.png</file>
         <file>images/expert.png</file>
         <file>images/expert1.png</file>
         <file>images/expert2.png</file>
@@ -48,6 +49,7 @@
         <file>images/scissors.png</file>
         <file>images/undo-cross.png</file>
         <file>images/undo.png</file>
+        <file>images/upload.png</file>
         <file>images/upload_brain.png</file>
         <file>images/us.png</file>
         <file>images/verify.png</file>
