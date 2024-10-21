@@ -27,7 +27,7 @@ from anylabeling.services.auto_labeling.types import AutoLabelingMode
 
 from ...app_info import __appname__
 from . import utils
-from ...config import get_config, save_config
+from ...config import get_config, save_config, get_default_config
 from .label_file import LabelFile, LabelFileError
 from .logger import logger
 from .shape import Shape
@@ -276,6 +276,13 @@ class LabelingWidget(LabelDialog):
             shortcuts["open_next"],
             "next",
             self.tr("Open next (hold Ctrl+Shift to copy labels)"),
+            enabled=False,
+        )
+        mark_image_null = action(
+            self.tr("&Mark Image Null"),
+            self.mark_image_null,
+            shortcuts["mark_image_null"],
+            self.tr("Mark image as null"),
             enabled=False,
         )
         open_prev_image = action(
@@ -771,6 +778,7 @@ class LabelingWidget(LabelDialog):
             show_texts=show_texts,
             zoom_actions=zoom_actions,
             open_next_image=open_next_image,
+            mark_image_null=mark_image_null,
             open_prev_image=open_prev_image,
             file_menu_actions=(open_, opendir, save, save_as, close),
             tool=(),
@@ -841,6 +849,7 @@ class LabelingWidget(LabelDialog):
             (
                 open_,
                 open_next_image,
+                mark_image_null,
                 open_prev_image,
                 opendir,
                 self.menus.recent_files,
@@ -1118,11 +1127,12 @@ class LabelingWidget(LabelDialog):
         text_shortcuts = self.tr("Shortcuts:")
         text_previous = self.tr("Previous:")
         text_next = self.tr("Next:")
+        text_mark_null = self.tr("Mark Null:")
         text_rectangle = self.tr("Rectangle:")
         text_polygon = self.tr("Polygon:")
         return (
             f"<b>{text_mode}</b> {self.canvas.get_mode()} - <b>{text_shortcuts}</b>"
-            f" {text_previous} <b>A</b>, {text_next} <b>D</b>,"
+            f" {text_previous} <b>A</b>, {text_next} <b>D</b>,{text_mark_null} <b>N</b>,"
             f" {text_rectangle} <b>R</b>,"
             f" {text_polygon} <b>P</b>"
         )
@@ -2209,6 +2219,17 @@ class LabelingWidget(LabelDialog):
 
         self._config["keep_prev"] = keep_prev
         save_config(self._config)
+        
+    def mark_image_null(self):
+        label_file = self.get_label_file()
+        #we create a labeling file with no shapes
+        self.save_labels(label_file)
+        
+    def mark_image_null_and_next(self):
+        self.mark_image_null()
+        self.open_next_image()
+        
+        
 
     def open_file(self, _value=False):
         if not self.may_continue():
@@ -2370,6 +2391,7 @@ class LabelingWidget(LabelDialog):
             self.error_message(
                 "No objects labeled",
                 "You must label at least one object to save the file.",
+                "Or you can mark the image as null.",
             )
             return False
         return True
@@ -2517,12 +2539,14 @@ class LabelingWidget(LabelDialog):
         if len(self.image_list) > 1:
             self.actions.open_next_image.setEnabled(True)
             self.actions.open_prev_image.setEnabled(True)
+            self.actions.mark_image_null.setEnabled(True)
 
         self.open_next_image()
 
     def import_image_folder(self, dirpath, pattern=None, load=True):
         self.actions.open_next_image.setEnabled(True)
         self.actions.open_prev_image.setEnabled(True)
+        self.actions.mark_image_null.setEnabled(True)
 
         if not self.may_continue() or not dirpath:
             return
@@ -2829,10 +2853,10 @@ class LabelingWidget(LabelDialog):
                 
             print(f"Output dir: {default_output_dir}")
             
-            for i in range(nb_images//5):
+            for i in range(nb_images//5 + 1):
                 print(f"Downloading images {i*5} to {(i+1)*5}")
                 batch = {"data": []}
-                if i == nb_images//5 - 1:
+                if i == nb_images//5:
                     batch['data'] = unreviewed_scans["data"][i*5:]
                 else :
                     batch['data'] = unreviewed_scans["data"][i*5:(i+1)*5]
@@ -2866,7 +2890,8 @@ class LabelingWidget(LabelDialog):
             self.statusBar().showMessage(self.tr("Generating and sending annotations..."))
             #annotation_list = [ann_path for ann_path in os.listdir(default_output_dir) if ann_path.endswith('.json')]
             
-            upload_all_scans(default_output_dir)
+            destination_dir = osp.join(default_output_dir, 'reviewed_images')
+            upload_all_scans(default_output_dir, destination_dir)
             
             #we refresh the image list
             self.import_image_folder(self.last_open_dir, load=False)
@@ -2881,7 +2906,7 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    config = get_config()  # Load your config
+    config = get_default_config() # Load your config
     lw = LabelingWidget(config=config) # You can pass filename, output_file, etc. for initial loading
     lw.showMaximized()  # or lw.show()
     sys.exit(app.exec_())

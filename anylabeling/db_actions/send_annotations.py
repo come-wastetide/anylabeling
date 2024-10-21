@@ -43,6 +43,10 @@ def write_txt_from_json(json_path: str, class_2_label: dict,path=default_path):
         #we create a .txt file with the same name as the image with yolo format
         if os.path.exists(os.path.join(path, image_name.split('.')[0] + '.txt')):
             os.remove(os.path.join(path, image_name.split('.')[0] + '.txt'))
+                
+        #now we create the .txt file
+        with open(os.path.join(path, image_name.split('.')[0] + '.txt'), 'w') as file:
+            file.write(' ')        
         
         #the points of the polygon
         for polygon in data['shapes']:
@@ -90,6 +94,8 @@ def get_status_from_key(key: int, keys: dict):
 #we want to send the annotations to the database in that format 
 
 def annotations_from_txt(txt_path: str,path=default_path):
+    if not os.path.exists(os.path.join(path, txt_path)):
+        return []
     with open(os.path.join(path, txt_path), 'r') as file:
         annotations = []
         for line in file:
@@ -175,7 +181,7 @@ def upload_all_scans(path=default_path, destination=default_path):
         if destination == default_path:
             destination = os.path.join(default_path, 'reviewed_images')
         
-        move_scan(scan_id, destination)
+        move_scan(scan_id, destination, path)
         
     print(f'{len(annotation_list)} annotations sent')
     print(f'{len(annotation_list)} images moved to reviewed_images folder')
@@ -183,9 +189,11 @@ def upload_all_scans(path=default_path, destination=default_path):
 
 if __name__ == '__main__':
     
+    default_path = '/Users/macbook/Desktop/labeling_tool/images_to_review'
+    
     annotation_list = [ann_path for ann_path in os.listdir(default_path) if ann_path.endswith('.json')]
 
-    write_txt_from_all_jsons()
+    write_txt_from_all_jsons(default_path,annotation_list)
 
     nb_annotations = len(annotation_list)
 
@@ -200,7 +208,7 @@ if __name__ == '__main__':
         
         annotations = annotations_from_txt(annotation_txt)
         send_annotations(scan_id, annotations)
-        move_scan(scan_id, 'reviewed_images')
+        move_scan(scan_id, 'reviewed_images', default_path)
         
     print(f'{nb_annotations} annotations sent')
 

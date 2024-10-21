@@ -14,7 +14,20 @@ logger_level: info
 
 flags: null
 label_flags: null
-labels: null
+#we add default labels
+labels:
+  [
+    "biowaste",
+    "cardboard",
+    "electronic",
+    "hazardous",
+    "glass",
+    "metal",
+    "other",
+    "paper",
+    "plastic",
+    "textile",
+  ]
 file_search: null
 sort_labels: true
 validate_label: null
@@ -87,6 +100,7 @@ shortcuts:
 
   open_next: [D, Ctrl+Shift+D]
   open_prev: [A, Ctrl+Shift+A]
+  mark_image_null: N
 
   zoom_in: [Ctrl++, Ctrl+=]
   zoom_out: Ctrl+-
