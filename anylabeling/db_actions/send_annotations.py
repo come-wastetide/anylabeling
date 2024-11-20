@@ -100,6 +100,8 @@ def annotations_from_txt(txt_path: str,path=default_path):
         annotations = []
         for line in file:
             line = line.strip().split(' ')
+            if line[0] == '':
+                continue
             class_label = int(line[0])
             x_center = float(line[1])
             y_center = float(line[2])
@@ -169,7 +171,7 @@ def upload_all_scans(path=default_path, destination=default_path):
     
     for annotation_path in annotation_list:
         scan_id = annotation_path.split('.')[0]
-        annotations = annotations_from_txt(scan_id + '.txt')
+        annotations = annotations_from_txt(scan_id + '.txt',path)
         
         try:
             send_annotations(scan_id, annotations)
@@ -189,10 +191,10 @@ def upload_all_scans(path=default_path, destination=default_path):
 
 if __name__ == '__main__':
     
-    default_path = '/Users/macbook/Desktop/labeling_tool/images_to_review'
+    default_path = '/Users/macbook/Desktop/labeling_tool/images_to_review/reviewed_images/reviewed_images'
     
     annotation_list = [ann_path for ann_path in os.listdir(default_path) if ann_path.endswith('.json')]
-
+    
     write_txt_from_all_jsons(default_path,annotation_list)
 
     nb_annotations = len(annotation_list)
@@ -206,9 +208,10 @@ if __name__ == '__main__':
         
         annotation_txt = scan_id + '.txt'
         
-        annotations = annotations_from_txt(annotation_txt)
+        annotations = annotations_from_txt(annotation_txt,default_path)
+        print(annotations)
         send_annotations(scan_id, annotations)
-        move_scan(scan_id, 'reviewed_images', default_path)
+        #move_scan(scan_id, 'reviewed_images', default_path)
         
     print(f'{nb_annotations} annotations sent')
 

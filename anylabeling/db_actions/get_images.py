@@ -25,11 +25,15 @@ def get_scan_result(scan_id: str):
     response = supabase.table("ScanResult").select().eq("scanId", scan_id).execute().json()
     return json.loads(response)
 
-def download_unreviewed_scans(limit_date=None):
+def download_unreviewed_scans(limit_date=None,organisation_id=None):
     response = supabase.table("ScanResult").select().eq("validated", 'FALSE').execute().model_dump_json()
     
     scan_results = json.loads(response)
     scan_ids = [result['scanId'] for result in scan_results['data']]
+    
+    if organisation_id is not None:
+        scans_response = supabase.table("Scan").select().in_("id", scan_ids).eq("organizationId", organisation_id).execute().model_dump_json()
+        return json.loads(scans_response)
     
     if limit_date:
         scans_response = supabase.table("Scan").select().in_("id", scan_ids).gte("createdAt", limit_date).execute().model_dump_json()

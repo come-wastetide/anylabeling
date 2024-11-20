@@ -52,6 +52,7 @@ LABEL_COLORMAP[1] = [0, 180, 33]
 
 from anylabeling.db_actions.get_images import *
 from anylabeling.db_actions.send_annotations import *
+from anylabeling.db_actions.categories_utils import *
 
 from datetime import timedelta, datetime
 class LabelingWidget(LabelDialog):
@@ -115,6 +116,11 @@ class LabelingWidget(LabelDialog):
         self._no_selection_slot = False
 
         self._copied_shapes = None
+        
+        if self._config["current_organization_id"] is not None:
+            self._config["labels"] = get_category_list_from_organization_via_supabase(
+                self._config["current_organization_id"]
+            )
 
         # Main widgets and related state.
         self.label_dialog = LabelDialog(
@@ -2840,6 +2846,21 @@ class LabelingWidget(LabelDialog):
             print("Fetching and downloading images...")
             limit_date = datetime.now() - timedelta(days=5)
             print(f'Limit date: {limit_date}')
+            '''
+            do_only_current_orga = self._config["only_download_current_organization_images"]
+            
+            if do_only_current_orga:
+                print("Only downloading images from current organization.")
+                current_orga = self._config["current_organization_id"]
+                unreviewed_scans = download_unreviewed_scans(limit_date=limit_date, organisation_id=current_orga)
+            
+            else :
+                unreviewed_scans = download_unreviewed_scans(limit_date=limit_date)'''
+            ### TODO correct this bug ! -> I don't know why but it causes QObject::connect: Cannot queue arguments of type 'QItemSelection'
+            ###(Make sure 'QItemSelection' is registered using qRegisterMetaType().)
+            ###QObject::connect: Cannot queue arguments of type 'QItemSelection'
+            ###(Make sure 'QItemSelection' is registered using qRegisterMetaType().)
+            
             unreviewed_scans = download_unreviewed_scans(limit_date=limit_date)
             
             nb_images = len(unreviewed_scans["data"])

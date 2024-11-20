@@ -31,11 +31,45 @@ labels:
 file_search: null
 sort_labels: true
 validate_label: null
+current_organization_id: org_2jLn0za5IpTINBIcnkCpmlyzlIi #org_2n9vPpSVH3TOsa3InZy4sQp4pOe
+only_download_current_organization_images: false
 
 default_shape_color: [0, 255, 0]
 shape_color: auto # null, 'auto', 'manual'
 shift_auto_shape_color: 0
-label_colors: null
+label_colors:
+  {
+    "biowaste": (164,
+    211,
+    156),
+    "cardboard": (176,
+    126,
+    68),
+    "electronic": (72,
+    175,
+    142),
+    "hazardous": (113,
+    141,
+    77),
+    "glass": (239,
+    98,
+    98),
+    "metal": (232,
+    189,
+    4),
+    "other": (120,
+    120,
+    120),
+    "paper": (176,
+    194,
+    209),
+    "plastic": (255,
+    216,
+    206),
+    "textile": (89,
+    167,
+    191),
+  }
 
 shape:
   # drawing
