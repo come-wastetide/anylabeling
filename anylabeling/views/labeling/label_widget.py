@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-from ...utils import GenericWorker  # Import GenericWorker from utils
+from ...utils import DownloadWorker  # Import GenericWorker from utils
 
 from anylabeling.services.auto_labeling.types import AutoLabelingMode
 
@@ -54,7 +54,7 @@ from anylabeling.db_actions.get_images import *
 from anylabeling.db_actions.send_annotations import *
 from anylabeling.db_actions.categories_utils import *
 
-from datetime import timedelta, datetime
+
 class LabelingWidget(LabelDialog):
     """The main widget for labeling images"""
 
@@ -116,10 +116,12 @@ class LabelingWidget(LabelDialog):
         self._no_selection_slot = False
 
         self._copied_shapes = None
-        
+
         if self._config["current_organization_id"] is not None:
-            self._config["labels"] = get_category_list_from_organization_via_supabase(
-                self._config["current_organization_id"]
+            self._config["labels"] = (
+                get_category_list_from_organization_via_supabase(
+                    self._config["current_organization_id"]
+                )
             )
 
         # Main widgets and related state.
@@ -644,22 +646,16 @@ class LabelingWidget(LabelDialog):
             checked=self._config["show_texts"],
             enabled=True,
         )
-        
+
         get_images_action = action(
             self.tr("Get and Download Images"),
             self.get_and_download_images,
             shortcuts["get_images"],
-            "download", # Add an icon if needed
+            "download",  # Add an icon if needed
             tip=self.tr("Fetches and downloads images from Supabase"),
         )
 
-        send_annotations_action = action(
-            self.tr("Generate & Send Annotations"),
-            self.generate_and_send_annotations,
-            shortcuts["send_annotations"],
-            "upload",  # Add an icon if needed
-            tip=self.tr("Generates and sends annotations to Supabase"),
-        )
+        # see line 660 in original to get action for send annotations
 
         # Languages
         select_lang_en = action(
@@ -741,7 +737,7 @@ class LabelingWidget(LabelDialog):
         self.label_list.customContextMenuRequested.connect(
             self.pop_label_list_menu
         )
-        
+
         # Store actions for further handling.
         self.actions = utils.Struct(
             save_auto=save_auto,
@@ -769,8 +765,7 @@ class LabelingWidget(LabelDialog):
             create_line_mode=create_line_mode,
             create_point_mode=create_point_mode,
             create_line_strip_mode=create_line_strip_mode,
-            get_images_action=get_images_action,
-            send_annotations_action=send_annotations_action,
+            get_images_action=get_images_action,  # send_annotations_action=send_annotations_action
             zoom=zoom,
             zoom_in=zoom_in,
             zoom_out=zoom_out,
@@ -950,8 +945,7 @@ class LabelingWidget(LabelDialog):
             zoom,
             fit_width,
             toggle_auto_labeling_widget,
-            get_images_action,
-            send_annotations_action,
+            get_images_action,  # send_annotations_action
         )
 
         layout = QHBoxLayout()
@@ -2225,17 +2219,15 @@ class LabelingWidget(LabelDialog):
 
         self._config["keep_prev"] = keep_prev
         save_config(self._config)
-        
+
     def mark_image_null(self):
         label_file = self.get_label_file()
-        #we create a labeling file with no shapes
+        # we create a labeling file with no shapes
         self.save_labels(label_file)
-        
+
     def mark_image_null_and_next(self):
         self.mark_image_null()
         self.open_next_image()
-        
-        
 
     def open_file(self, _value=False):
         if not self.may_continue():
@@ -2810,125 +2802,42 @@ class LabelingWidget(LabelDialog):
     def get_and_download_images(self):
         if not self.may_continue():
             return
+        self.worker1 = DownloadWorker(
+            self.current_path(),
+            self.filename,
+            self.output_dir,
+            self.last_open_dir,
+            self.import_image_folder,
+        )
+        self.worker1.progress.connect(self.update_progress)
+        self.worker1.finished.connect(self.on_task_finished)
+        self.worker1.start()
 
-        self.script_thread = QThread()
-        self.script_worker = GenericWorker(self._get_and_download_images_thread)
-        self.setup_and_start_thread()
-        
-    def generate_and_send_annotations(self):
+    def update_progress(self, message):
+        self.statusBar().showMessage(self.tr(f"Progress: {message}"))
+
+    def on_task_finished(self):
+        self.statusBar().showMessage(self.tr("Task completed"))
+
+    """def generate_and_send_annotations(self):
         if not self.may_continue():
             return
 
         self.script_thread = QThread()
-        self.script_worker = GenericWorker(self._generate_and_send_annotations_thread)
-        self.setup_and_start_thread()
-            
-    def setup_and_start_thread(self):
-        """Common setup and start for a worker thread"""
-        self.script_worker.moveToThread(self.script_thread)
-        self.script_thread.started.connect(self.script_worker.run)
-        self.script_worker.finished.connect(self.script_thread.quit)
-        self.script_worker.finished.connect(self.script_worker.deleteLater)
-        self.script_thread.finished.connect(self.script_thread.deleteLater)
+        self.script_worker = GenericWorker(
+            self._generate_and_send_annotations_thread
+        )
+        self.setup_and_start_thread()"""
 
-        self.script_thread.start()
-        #self.disable_widgets() #assuming this exists for disabling relevant widgets
-
-
-        '''self.script_thread.finished.connect(
-            lambda: self.statusBar().showMessage(self.tr("Finished running scripts."))
-        )'''
-        #self.script_thread.finished.connect(lambda: self.enable_widgets())
-        
-    def _get_and_download_images_thread(self):
-        try:
-            self.statusBar().showMessage(self.tr("Fetching and downloading images..."))
-            print("Fetching and downloading images...")
-            limit_date = datetime.now() - timedelta(days=5)
-            print(f'Limit date: {limit_date}')
-            '''
-            do_only_current_orga = self._config["only_download_current_organization_images"]
-            
-            if do_only_current_orga:
-                print("Only downloading images from current organization.")
-                current_orga = self._config["current_organization_id"]
-                unreviewed_scans = download_unreviewed_scans(limit_date=limit_date, organisation_id=current_orga)
-            
-            else :
-                unreviewed_scans = download_unreviewed_scans(limit_date=limit_date)'''
-            ### TODO correct this bug ! -> I don't know why but it causes QObject::connect: Cannot queue arguments of type 'QItemSelection'
-            ###(Make sure 'QItemSelection' is registered using qRegisterMetaType().)
-            ###QObject::connect: Cannot queue arguments of type 'QItemSelection'
-            ###(Make sure 'QItemSelection' is registered using qRegisterMetaType().)
-            
-            unreviewed_scans = download_unreviewed_scans(limit_date=limit_date)
-            
-            nb_images = len(unreviewed_scans["data"])
-            print(f'Found {nb_images} unreviewed scans since last check.')
-            
-            default_output_dir = self.output_dir
-            if default_output_dir is None and self.filename:
-                default_output_dir = osp.dirname(self.filename)
-            if default_output_dir is None:
-                default_output_dir = self.current_path()
-                
-            print(f"Output dir: {default_output_dir}")
-            
-            for i in range(nb_images//5 + 1):
-                print(f"Downloading images {i*5} to {(i+1)*5}")
-                batch = {"data": []}
-                if i == nb_images//5:
-                    batch['data'] = unreviewed_scans["data"][i*5:]
-                else :
-                    batch['data'] = unreviewed_scans["data"][i*5:(i+1)*5]
-                
-                download_pictures_from_table(batch, destination=default_output_dir)
-            
-                self.import_image_folder(self.last_open_dir, load=False)
-                
-                self.statusBar().showMessage(self.tr(f"Downloaded images {i*5} to {(i+1)*5}"))
-                
-            self.statusBar().showMessage(self.tr(f"Finished fetching and downloading {nb_images} images."))
-
-        except Exception as e:
-            #logging.error(f"Error getting/downloading images: {e}")
-            self.statusBar().showMessage(self.tr("Error getting/downloading images."))
-            
-            print(f"Error getting/downloading images: {e}")
-
-
-
-    def _generate_and_send_annotations_thread(self):
-        try:
-            default_output_dir = self.output_dir
-            if default_output_dir is None and self.filename:
-                default_output_dir = osp.dirname(self.filename)
-            if default_output_dir is None:
-                default_output_dir = self.current_path()
-                
-            print(f"Output dir: {default_output_dir}")
-            
-            self.statusBar().showMessage(self.tr("Generating and sending annotations..."))
-            #annotation_list = [ann_path for ann_path in os.listdir(default_output_dir) if ann_path.endswith('.json')]
-            
-            destination_dir = osp.join(default_output_dir, 'reviewed_images')
-            upload_all_scans(default_output_dir, destination_dir)
-            
-            #we refresh the image list
-            self.import_image_folder(self.last_open_dir, load=False)
-
-        except Exception as e:
-            #logging.error(f"Error generating/sending annotations: {e}")
-            self.statusBar().showMessage(self.tr("Error generating/sending annotations."))
-            
-            print(f"Error generating/sending annotations: {e}")
 
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
+
     app = QApplication(sys.argv)
-    config = get_default_config() # Load your config
-    lw = LabelingWidget(config=config) # You can pass filename, output_file, etc. for initial loading
+    config = get_default_config()  # Load your config
+    lw = LabelingWidget(
+        config=config
+    )  # You can pass filename, output_file, etc. for initial loading
     lw.showMaximized()  # or lw.show()
     sys.exit(app.exec_())
-        
