@@ -52,7 +52,7 @@ jobs:
 
       - name: Build Executable for macOS
         run: |
-          pyinstaller --onefile anylabeling/app.py
+          pyinstaller --onefile --noconsole anylabeling/app.py
 
       - name: Upload macOS executable as artifact
         uses: actions/upload-artifact@v3
@@ -79,7 +79,7 @@ jobs:
 
       - name: Build Executable for Windows
         run: |
-          pyinstaller --onefile anylabeling/app.py
+          pyinstaller --onefile --noconsole anylabeling/app.py
 
       - name: Upload Windows executable as artifact
         uses: actions/upload-artifact@v3
