@@ -25,7 +25,7 @@ jobs:
 
       - name: Build Executable for Linux
         run: |
-          pyinstaller --onefile anylabeling/app.py
+          pyinstaller --noconfirm anylabeling.spec
 
       - name: Upload Linux executable as artifact
         uses: actions/upload-artifact@v3
@@ -52,13 +52,13 @@ jobs:
 
       - name: Build Executable for macOS
         run: |
-          pyinstaller --onefile --noconsole anylabeling/app.py
+          pyinstaller --noconfirm anylabeling.spec
 
       - name: Upload macOS executable as artifact
         uses: actions/upload-artifact@v3
         with:
           name: macos-executable
-          path: dist/app
+          path: dist/app.app
 
   build-windows:
     runs-on: windows-latest
@@ -79,7 +79,7 @@ jobs:
 
       - name: Build Executable for Windows
         run: |
-          pyinstaller --onefile --noconsole anylabeling/app.py
+          pyinstaller --noconfirm anylabeling.spec
 
       - name: Upload Windows executable as artifact
         uses: actions/upload-artifact@v3
