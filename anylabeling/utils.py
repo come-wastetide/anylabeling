@@ -4,6 +4,7 @@ from .db_actions.get_images import (
     download_unreviewed_scans,
     download_pictures_from_table,
 )
+from .db_actions.send_annotations import upload_all_scans
 import os.path as osp
 
 
@@ -23,6 +24,9 @@ class GenericWorker(QObject):
 
 
 class DownloadWorker(QThread):
+    import_request = pyqtSignal(
+        str, bool
+    )  # Signal to request import_image_folder
     progress = pyqtSignal(str)
     finished = pyqtSignal()
 
@@ -32,7 +36,6 @@ class DownloadWorker(QThread):
         filename,
         output_dir,
         last_open_dir,
-        import_image_folder,
         parent=None,
     ):
         super().__init__(parent)
@@ -42,7 +45,6 @@ class DownloadWorker(QThread):
             output_dir  # Save the argument as an instance variable
         )
         self.last_open_dir = last_open_dir
-        self.import_image_folder = import_image_folder
 
     def run(self):
         try:
@@ -65,6 +67,7 @@ class DownloadWorker(QThread):
 
             for i in range(nb_images // 5 + 1):
                 print(f"Downloading images {i*5} to {(i+1)*5}")
+                self.progress.emit(f"Downloading images {i*5} to {(i+1)*5}")
                 batch = {"data": []}
                 if i == nb_images // 5:
                     batch["data"] = unreviewed_scans["data"][i * 5 :]
@@ -77,7 +80,7 @@ class DownloadWorker(QThread):
                     batch, destination=default_output_dir
                 )
 
-                self.import_image_folder(self.last_open_dir, load=False)
+                self.import_request.emit(self.last_open_dir, False)
 
             self.progress.emit(
                 f"Finished fetching and downloading {nb_images} images."
@@ -91,9 +94,28 @@ class DownloadWorker(QThread):
             self.finished.emit()
 
 
-"""class SendAnnotationWorker(QThread):
+class SendAnnotationWorker(QThread):
+    import_request = pyqtSignal(
+        str, bool
+    )  # Signal to request import_image_folder
     progress = pyqtSignal(str)
     finished = pyqtSignal()
+
+    def __init__(
+        self,
+        current_path,
+        filename,
+        output_dir,
+        last_open_dir,
+        parent=None,
+    ):
+        super().__init__(parent)
+        self.current_path = current_path
+        self.filename = filename
+        self.output_dir = (
+            output_dir  # Save the argument as an instance variable
+        )
+        self.last_open_dir = last_open_dir
 
     def run(self):
         try:
@@ -105,21 +127,16 @@ class DownloadWorker(QThread):
 
             print(f"Output dir: {default_output_dir}")
 
-            self.statusBar().showMessage(
-                self.tr("Generating and sending annotations...")
-            )
-            # annotation_list = [ann_path for ann_path in os.listdir(default_output_dir) if ann_path.endswith('.json')]
+            self.progress.emit("Generating and sending annotations...")
 
             destination_dir = osp.join(default_output_dir, "reviewed_images")
             upload_all_scans(default_output_dir, destination_dir)
 
             # we refresh the image list
-            self.import_image_folder(self.last_open_dir, load=False)
+            self.import_request.emit(self.last_open_dir, False)
 
         except Exception as e:
             # logging.error(f"Error generating/sending annotations: {e}")
-            self.statusBar().showMessage(
-                self.tr("Error generating/sending annotations.")
-            )
-
-            print(f"Error generating/sending annotations: {e}")"""
+            print(f"Error generating/sending annotations : {e}")
+            self.progress.emit(f"Error generating/sending annotations : {e}")
+            self.finished.emit()

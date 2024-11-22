@@ -21,7 +21,10 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-from ...utils import DownloadWorker  # Import GenericWorker from utils
+from ...utils import (
+    DownloadWorker,
+    SendAnnotationWorker,
+)  # Import GenericWorker from utils
 
 from anylabeling.services.auto_labeling.types import AutoLabelingMode
 
@@ -654,6 +657,13 @@ class LabelingWidget(LabelDialog):
             "download",  # Add an icon if needed
             tip=self.tr("Fetches and downloads images from Supabase"),
         )
+        send_annotations_action = action(
+            self.tr("Generate & Send Annotations"),
+            self.generate_and_send_annotations,
+            shortcuts["send_annotations"],
+            "upload",  # Add an icon if needed
+            tip=self.tr("Generates and sends annotations to Supabase"),
+        )
 
         # see line 660 in original to get action for send annotations
 
@@ -765,7 +775,8 @@ class LabelingWidget(LabelDialog):
             create_line_mode=create_line_mode,
             create_point_mode=create_point_mode,
             create_line_strip_mode=create_line_strip_mode,
-            get_images_action=get_images_action,  # send_annotations_action=send_annotations_action
+            get_images_action=get_images_action,
+            send_annotations_action=send_annotations_action,
             zoom=zoom,
             zoom_in=zoom_in,
             zoom_out=zoom_out,
@@ -860,6 +871,7 @@ class LabelingWidget(LabelDialog):
                 change_output_dir,
                 save_with_image_data,
                 get_images_action,
+                send_annotations_action,
                 close,
                 delete_file,
                 None,
@@ -945,7 +957,8 @@ class LabelingWidget(LabelDialog):
             zoom,
             fit_width,
             toggle_auto_labeling_widget,
-            get_images_action,  # send_annotations_action
+            get_images_action,
+            send_annotations_action,
         )
 
         layout = QHBoxLayout()
@@ -2807,27 +2820,42 @@ class LabelingWidget(LabelDialog):
             self.filename,
             self.output_dir,
             self.last_open_dir,
-            self.import_image_folder,
         )
         self.worker1.progress.connect(self.update_progress)
         self.worker1.finished.connect(self.on_task_finished)
+        self.worker1.import_request.connect(
+            self.handle_import_request
+        )  # Import requests
+
         self.worker1.start()
+
+    def generate_and_send_annotations(self):
+        if not self.may_continue():
+            return
+
+        self.worker2 = SendAnnotationWorker(
+            self.current_path(),
+            self.filename,
+            self.output_dir,
+            self.last_open_dir,
+        )
+        self.worker2.progress.connect(self.update_progress)
+        self.worker2.finished.connect(self.on_task_finished)
+        self.worker2.import_request.connect(
+            self.handle_import_request
+        )  # Import requests
+
+        self.worker2.start()
+
+    def handle_import_request(self, dirpath, load):
+        """Slot to handle import requests from the worker."""
+        self.import_image_folder(dirpath, load)
 
     def update_progress(self, message):
         self.statusBar().showMessage(self.tr(f"Progress: {message}"))
 
     def on_task_finished(self):
         self.statusBar().showMessage(self.tr("Task completed"))
-
-    """def generate_and_send_annotations(self):
-        if not self.may_continue():
-            return
-
-        self.script_thread = QThread()
-        self.script_worker = GenericWorker(
-            self._generate_and_send_annotations_thread
-        )
-        self.setup_and_start_thread()"""
 
 
 if __name__ == "__main__":
