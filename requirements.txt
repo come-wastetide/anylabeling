@@ -4,7 +4,6 @@ aiosignal==1.3.1
 altgraph==0.17.4
 annotated-types==0.7.0
 anyio==4.6.2.post1
--e git+ssh://git@github.com/come-wastetide/anylabeling.git@51a490bde70b9e876f86ecdfbc2c091688bf92c0#egg=anylabeling
 attrs==24.2.0
 black==24.10.0
 build==1.2.2.post1
