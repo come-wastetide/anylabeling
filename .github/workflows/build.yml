@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: linux-executable
-          path: dist/app
+          path: dist/
 
   build-macos:
     runs-on: macos-latest
@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-executable
-          path: dist/app.app
+          path: dist/
 
   build-windows:
     runs-on: windows-latest
@@ -85,4 +85,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-executable
-          path: dist/app.exe
+          path: dist/
