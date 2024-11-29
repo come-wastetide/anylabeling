@@ -12,3 +12,4 @@ anylabeling/app_info.py-*
 zipped_models/*
 venv/
 anyvenv/
+*.env
