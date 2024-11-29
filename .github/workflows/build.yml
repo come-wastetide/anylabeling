@@ -52,7 +52,7 @@ jobs:
           path: dist/
 
   build-macos:
-    runs-on: macos-latest
+    runs-on: macOS-14.5
     environment: executable
 
     steps:
