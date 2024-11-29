@@ -13,7 +13,7 @@ a = Analysis(
        ('anylabeling/configs/auto_labeling/*.yaml', 'anylabeling/configs/auto_labeling'),
        ('anylabeling/configs/*.yaml', 'anylabeling/configs'),
        ('anylabeling/views/labeling/widgets/auto_labeling/auto_labeling.ui', 'anylabeling/views/labeling/widgets/auto_labeling'),
-       ('.env', '.')
+       ('anylabeling/.env', '.')
     ],
     hiddenimports=['supabase','gotrue', 'httpx', 'postgrest', 'realtime', 'storage3', 'supafunc'],
     hookspath=[],
