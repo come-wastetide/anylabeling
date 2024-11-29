@@ -4,12 +4,22 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-load_dotenv()
+# Get the path of the .env file relative to the executable
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+print(env_path)
+# Load .env from the correct path
 
-url: str = os.getenv("SUPABASE_URL")
-key: str = os.getenv("SUPABASE_KEY")
+load_dotenv(env_path)
 
-supabase: Client = create_client(url, key)
+# Retrieve environment variables with default values
+SUPABASE_URL = os.getenv("SUPABASE_URL", "default_url")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "default_key")
+
+# test if the variables are correctly loaded
+print(f"Supabase URL: {SUPABASE_URL}")
+print(f"Supabase Key: {SUPABASE_KEY}")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 print("connected to database")
 

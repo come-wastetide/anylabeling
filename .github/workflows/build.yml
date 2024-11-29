@@ -3,11 +3,12 @@ name: Build and Upload Executable
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
+    environment: executable
 
     steps:
       - name: Checkout code
@@ -16,19 +17,108 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.7'
+          python-version: "3.12.7"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Build Executable
+      - name: Export environment variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          pyinstaller --onefile anylabeling/app.py
+          echo "SUPABASE_URL=${SUPABASE_URL}" > .env
+          echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
 
-      - name: Upload executable as artifact
+      - name: Validate environment variables
+        run: |
+          echo "Checking .env contents:"
+          cat .env
+          echo "Checking SUPABASE_URL:"
+          grep "SUPABASE_URL" .env || (echo "SUPABASE_URL not found" && exit 1)
+          echo "Checking SUPABASE_KEY:"
+          grep "SUPABASE_KEY" .env || (echo "SUPABASE_KEY not found" && exit 1)
+
+      - name: Build Executable for Linux
+        run: |
+          pyinstaller --noconfirm anylabeling.spec
+
+      - name: Upload Linux executable as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: executable
-          path: dist/your_app
+          name: linux-executable
+          path: dist/
+
+  build-macos:
+    runs-on: macos-latest
+    environment: executable
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12.7"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Export environment variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=$SUPABASE_KEY" >> $GITHUB_ENV
+
+      - name: Build Executable for macOS
+        run: |
+          pyinstaller --noconfirm anylabeling.spec
+
+      - name: Upload macOS executable as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-executable
+          path: dist/
+
+  build-windows:
+    runs-on: windows-latest
+    environment: executable
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12.7"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Export environment variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=$SUPABASE_KEY" >> $GITHUB_ENV
+
+      - name: Build Executable for Windows
+        run: |
+          pyinstaller --noconfirm anylabeling.spec
+
+      - name: Upload Windows executable as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-executable
+          path: dist/

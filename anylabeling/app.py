@@ -117,14 +117,14 @@ def main():
         help="epsilon to find nearest vertex on canvas",
         default=argparse.SUPPRESS,
     )
-    
+
     parser.add_argument(
         "--default_config",
         action="store_true",
         help="use default config without storing it",
         default=False,
     )
-    
+
     args = parser.parse_args()
 
     logger.setLevel(getattr(logging, args.logger_level.upper()))
@@ -181,7 +181,7 @@ def main():
         ":/languages/translations/" + language + ".qm"
     )
 
-    #QMetaType.registerType(QItemSelection)  # Call as static method
+    # QMetaType.registerType(QItemSelection)  # Call as static method
 
     # Enable scaling for high dpi screens
     QtWidgets.QApplication.setAttribute(
@@ -192,7 +192,7 @@ def main():
     )  # use highdpi icons
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
 
-    app = QtWidgets.QApplication(sys.argv) # QApplication creation
+    app = QtWidgets.QApplication(sys.argv)  # QApplication creation
     app.processEvents()
 
     app.setApplicationName(__appname__)
@@ -204,10 +204,10 @@ def main():
             "Failed to load translation for %s. Using default language.",
             language,
         )
-        
+
     if default_config:
         config = get_default_config()
-    
+
     win = MainWindow(
         app,
         config=config,
