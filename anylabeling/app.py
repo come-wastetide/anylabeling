@@ -23,21 +23,9 @@ from anylabeling.views.mainwindow import MainWindow
 from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils import new_icon
 from anylabeling.resources import resources
-from dotenv import load_dotenv
 
 
 def main():
-    # Load .env file
-    load_dotenv()
-
-    # Retrieve environment variables with default values
-    SUPABASE_URL = os.getenv("SUPABASE_URL", "default_url")
-    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "default_key")
-
-    # test if the variables are correctly loaded
-    print(f"Supabase URL: {SUPABASE_URL}")
-    print(f"Supabase Key: {SUPABASE_KEY}")
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--reset-config", action="store_true", help="reset qt config"

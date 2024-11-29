@@ -32,6 +32,15 @@ jobs:
           echo "SUPABASE_URL=${SUPABASE_URL}" > .env
           echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
 
+      - name: Validate environment variables
+        run: |
+          echo "Checking .env contents:"
+          cat .env
+          echo "Checking SUPABASE_URL:"
+          grep "SUPABASE_URL" .env || (echo "SUPABASE_URL not found" && exit 1)
+          echo "Checking SUPABASE_KEY:"
+          grep "SUPABASE_KEY" .env || (echo "SUPABASE_KEY not found" && exit 1)
+
       - name: Build Executable for Linux
         run: |
           pyinstaller --noconfirm anylabeling.spec
