@@ -23,9 +23,21 @@ from anylabeling.views.mainwindow import MainWindow
 from anylabeling.views.labeling.logger import logger
 from anylabeling.views.labeling.utils import new_icon
 from anylabeling.resources import resources
+from dotenv import load_dotenv
 
 
 def main():
+    # Load .env file
+    load_dotenv()
+
+    # Retrieve environment variables with default values
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "default_url")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "default_key")
+
+    # test if the variables are correctly loaded
+    print(f"Supabase URL: {SUPABASE_URL}")
+    print(f"Supabase Key: {SUPABASE_KEY}")
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--reset-config", action="store_true", help="reset qt config"
@@ -117,14 +129,14 @@ def main():
         help="epsilon to find nearest vertex on canvas",
         default=argparse.SUPPRESS,
     )
-    
+
     parser.add_argument(
         "--default_config",
         action="store_true",
         help="use default config without storing it",
         default=False,
     )
-    
+
     args = parser.parse_args()
 
     logger.setLevel(getattr(logging, args.logger_level.upper()))
@@ -181,7 +193,7 @@ def main():
         ":/languages/translations/" + language + ".qm"
     )
 
-    #QMetaType.registerType(QItemSelection)  # Call as static method
+    # QMetaType.registerType(QItemSelection)  # Call as static method
 
     # Enable scaling for high dpi screens
     QtWidgets.QApplication.setAttribute(
@@ -192,7 +204,7 @@ def main():
     )  # use highdpi icons
     QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
 
-    app = QtWidgets.QApplication(sys.argv) # QApplication creation
+    app = QtWidgets.QApplication(sys.argv)  # QApplication creation
     app.processEvents()
 
     app.setApplicationName(__appname__)
@@ -204,10 +216,10 @@ def main():
             "Failed to load translation for %s. Using default language.",
             language,
         )
-        
+
     if default_config:
         config = get_default_config()
-    
+
     win = MainWindow(
         app,
         config=config,
