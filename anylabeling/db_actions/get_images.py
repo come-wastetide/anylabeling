@@ -4,8 +4,14 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Load .env file
-load_dotenv()
+# Get the path of the .env file relative to the executable
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+
+# Load .env from the correct path
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    print("Warning: .env file not found, using default environment variables.")
 
 # Retrieve environment variables with default values
 SUPABASE_URL = os.getenv("SUPABASE_URL", "default_url")
