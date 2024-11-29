@@ -23,10 +23,43 @@ class_2_label_bins = {
       "other": 6,
       "paper": 7,
       "plastic": 8,
-      "textile": 9
+      "textile": 9,
+        "wood": 10,
+        "PS": 8,
+        "plastic PE": 8,
+        "plastic PET": 8,
+        "Plastic PE": 8,
+        "Plastic PET": 8,
+        "Plastic PS": 8,
+        "Plastic PVC":8,
+        "plastic pp":8,
+        "plastic ps":8,
+        "plastic PP":8,
+        "Plastic PP":8,
+        "plastic pe":8,
+        "plastic PS":8,
+        "Wood": 10,
+        "metals": 5,
+        "Sand/Minerals": 6,
+        "plastic toxic": 6,
+        "mineral wool": 6,
+        "e-waste": 2,
+        "Plywood": 10,
+        "Textile": 9,
+        "TEXTILE":9,
+        "Cardboard": 1,
+        "DIB/OMR": 6,
+        "Paint": 6,
+        "Paper": 7,
+        "Plastic": 8,
+        "plywood": 10,
+        "Silicate":5,
+        "plastic PVC":8,
+        
+        
     }
 
-default_path = '/Users/macbook/Desktop/test_anylabeling/test_dir'
+default_path = '/Users/macbook/Desktop/annotations/'
 
 
 def write_txt_from_json(json_path: str, class_2_label: dict,path=default_path):
@@ -64,6 +97,7 @@ def write_txt_from_json(json_path: str, class_2_label: dict,path=default_path):
             #the class label
             #we raise an error if the class is not in the class_2_label dictionary
             if polygon['label'] not in class_2_label:
+                print(f'Class {polygon["label"]} not in class_2_label dictionary')
                 raise ValueError('Class not in class_2_label dictionary')
             label = class_2_label[polygon['label']]
             
@@ -191,13 +225,13 @@ def upload_all_scans(path=default_path, destination=default_path):
 
 if __name__ == '__main__':
     
-    default_path = '/Users/macbook/Desktop/labeling_tool/images_to_review/reviewed_images/reviewed_images'
+    default_path = '/Users/macbook/Desktop/annotations_siemens/CO'
     
     annotation_list = [ann_path for ann_path in os.listdir(default_path) if ann_path.endswith('.json')]
     
     write_txt_from_all_jsons(default_path,annotation_list)
 
-    nb_annotations = len(annotation_list)
+    '''nb_annotations = len(annotation_list)
 
     print(f'{nb_annotations} annotations to upload')
 
@@ -215,4 +249,4 @@ if __name__ == '__main__':
         
     print(f'{nb_annotations} annotations sent')
 
-    print(f'{nb_annotations} images moved to reviewed_images folder')
+    print(f'{nb_annotations} images moved to reviewed_images folder')'''
