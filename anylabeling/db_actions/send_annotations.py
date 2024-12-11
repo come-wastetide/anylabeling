@@ -25,19 +25,19 @@ class_2_label_bins = {
       "plastic": 8,
       "textile": 9,
         "wood": 10,
-        "PS": 8,
+        "PS": 12,
         "plastic PE": 8,
-        "plastic PET": 8,
+        "plastic PET": 11,
         "Plastic PE": 8,
-        "Plastic PET": 8,
+        "Plastic PET": 11,
         "Plastic PS": 8,
         "Plastic PVC":8,
         "plastic pp":8,
-        "plastic ps":8,
+        "plastic ps":12,
         "plastic PP":8,
         "Plastic PP":8,
         "plastic pe":8,
-        "plastic PS":8,
+        "plastic PS":12,
         "Wood": 10,
         "metals": 5,
         "Sand/Minerals": 6,
@@ -225,11 +225,12 @@ def upload_all_scans(path=default_path, destination=default_path):
 
 if __name__ == '__main__':
     
-    default_path = '/Users/macbook/Desktop/annotations_siemens/CO'
+    default_path = '/Users/macbook/Desktop/annotations/NB'
     
     annotation_list = [ann_path for ann_path in os.listdir(default_path) if ann_path.endswith('.json')]
     
     write_txt_from_all_jsons(default_path,annotation_list)
+
 
     '''nb_annotations = len(annotation_list)
 
