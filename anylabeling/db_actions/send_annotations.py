@@ -30,7 +30,7 @@ class_2_label_bins = {
         "plastic PET": 11,
         "Plastic PE": 8,
         "Plastic PET": 11,
-        "Plastic PS": 8,
+        "Plastic PS": 12,
         "Plastic PVC":8,
         "plastic pp":8,
         "plastic ps":12,
@@ -196,6 +196,31 @@ def move_scan(scan_id, destination, path=default_path):
     os.rename(f'{path}/{scan_id}.txt', f'{destination}/{scan_id}.txt')
     os.rename(f'{path}/{scan_id}.json', f'{destination}/{scan_id}.json')
     
+def change_image_overwrite(scan_id):
+    #we check if the scan exists
+    '''response = supabase.table('Scan').select().eq('id', scan_id).execute()
+    if response['status'] != 200:
+        raise ValueError('Scan not found')'''
+    
+    if get_image_status(scan_id):
+        supabase.table('ScanResult').update({'validated': 'FALSE'}).eq('scanId', scan_id).execute()
+    else:
+        supabase.table('ScanResult').update({'validated': 'TRUE'}).eq('scanId', scan_id).execute()
+    
+    status = get_image_status(scan_id)
+    
+    return status
+def get_image_status(scan_id):    
+    current_status = supabase.table('ScanResult').select('validated').eq('scanId', scan_id).execute().json()
+    '''if current_status['status'] != 200:
+        raise ValueError('Scan not found')'''
+    
+    status = json.loads(current_status)
+    if not status['data']:
+        raise ValueError('Scan not found')
+    status = status['data'][0]['validated']
+    return status
+    
 
 def upload_all_scans(path=default_path, destination=default_path):
     
@@ -225,11 +250,13 @@ def upload_all_scans(path=default_path, destination=default_path):
 
 if __name__ == '__main__':
     
-    default_path = '/Users/macbook/Desktop/annotations/NB'
+    
+    
+    '''default_path = '/Users/macbook/Desktop/annotations/NB'
     
     annotation_list = [ann_path for ann_path in os.listdir(default_path) if ann_path.endswith('.json')]
     
-    write_txt_from_all_jsons(default_path,annotation_list)
+    write_txt_from_all_jsons(default_path,annotation_list)'''
 
 
     '''nb_annotations = len(annotation_list)

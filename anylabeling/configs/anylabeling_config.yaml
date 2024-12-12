@@ -27,6 +27,9 @@ labels:
     "paper",
     "plastic",
     "textile",
+    "wood",
+    "PET",
+    "PS",
   ]
 file_search: null
 sort_labels: true
@@ -69,6 +72,15 @@ label_colors:
     "textile": (89,
     167,
     191),
+    "wood": (255,
+    255,
+    255),
+    "PET": (255,
+    255,
+    255),
+    "PS": (255,
+    255,
+    255),
   }
 
 shape:
@@ -135,6 +147,7 @@ shortcuts:
   open_next: [D, Ctrl+Shift+D]
   open_prev: [A, Ctrl+Shift+A]
   mark_image_null: N
+  allow_overwrite: O
 
   zoom_in: [Ctrl++, Ctrl+=]
   zoom_out: Ctrl+-

@@ -296,6 +296,13 @@ class LabelingWidget(LabelDialog):
             self.tr("Mark image as null"),
             enabled=False,
         )
+        allow_overwrite = action(
+            self.tr("&Allow Overwrite"),
+            self.allow_overwrite,
+            shortcuts["allow_overwrite"],
+            self.tr("Allow Overwrite"),
+            enabled=False,
+        )
         open_prev_image = action(
             self.tr("&Prev Image"),
             self.open_prev_image,
@@ -791,6 +798,7 @@ class LabelingWidget(LabelDialog):
             zoom_actions=zoom_actions,
             open_next_image=open_next_image,
             mark_image_null=mark_image_null,
+            allow_overwrite=allow_overwrite,
             open_prev_image=open_prev_image,
             file_menu_actions=(open_, opendir, save, save_as, close),
             tool=(),
@@ -862,6 +870,7 @@ class LabelingWidget(LabelDialog):
                 open_,
                 open_next_image,
                 mark_image_null,
+                allow_overwrite,
                 open_prev_image,
                 opendir,
                 self.menus.recent_files,
@@ -1141,11 +1150,13 @@ class LabelingWidget(LabelDialog):
         text_previous = self.tr("Previous:")
         text_next = self.tr("Next:")
         text_mark_null = self.tr("Mark Null:")
+        text_allows_overwrite = self.tr("Allow Overwrite:")
         text_rectangle = self.tr("Rectangle:")
         text_polygon = self.tr("Polygon:")
         return (
             f"<b>{text_mode}</b> {self.canvas.get_mode()} - <b>{text_shortcuts}</b>"
             f" {text_previous} <b>A</b>, {text_next} <b>D</b>,{text_mark_null} <b>N</b>,"
+            f" {text_allows_overwrite} <b>O</b>,"
             f" {text_rectangle} <b>R</b>,"
             f" {text_polygon} <b>P</b>"
         )
@@ -2237,6 +2248,20 @@ class LabelingWidget(LabelDialog):
         label_file = self.get_label_file()
         # we create a labeling file with no shapes
         self.save_labels(label_file)
+    
+    def allow_overwrite(self):
+        try:
+            label_file = self.get_label_file()
+            scan_id = label_file.split("/")[-1].split(".")[0]
+            
+            status = change_image_overwrite(scan_id)
+            
+            if status:
+                self.statusBar().showMessage(self.tr(f"Overwrite allowed: {scan_id}, image not validated"))
+            else:
+                self.statusBar().showMessage(self.tr(f"Overwrite not allowed: {scan_id}, image validated"))
+        except Exception as e:
+            self.statusBar().showMessage(self.tr(f"Overwrite not allowed: {scan_id}, {e}"))
 
     def mark_image_null_and_next(self):
         self.mark_image_null()
@@ -2551,6 +2576,7 @@ class LabelingWidget(LabelDialog):
             self.actions.open_next_image.setEnabled(True)
             self.actions.open_prev_image.setEnabled(True)
             self.actions.mark_image_null.setEnabled(True)
+            self.actions.allow_overwrite.setEnabled(True)
 
         self.open_next_image()
 
@@ -2558,6 +2584,7 @@ class LabelingWidget(LabelDialog):
         self.actions.open_next_image.setEnabled(True)
         self.actions.open_prev_image.setEnabled(True)
         self.actions.mark_image_null.setEnabled(True)
+        self.actions.allow_overwrite.setEnabled(True)
 
         if not self.may_continue() or not dirpath:
             return

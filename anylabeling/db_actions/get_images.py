@@ -15,9 +15,6 @@ load_dotenv(env_path)
 SUPABASE_URL = os.getenv("SUPABASE_URL", "default_url")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "default_key")
 
-# test if the variables are correctly loaded
-print(f"Supabase URL: {SUPABASE_URL}")
-print(f"Supabase Key: {SUPABASE_KEY}")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
