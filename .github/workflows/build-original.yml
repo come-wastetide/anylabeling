@@ -81,6 +81,23 @@ jobs:
           conda install -c conda-forge pyqt==5.15.7
         if: runner.os == 'macOS'
 
+      - name: Export environment variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          echo "SUPABASE_URL=${SUPABASE_URL}" > .env
+          echo "SUPABASE_KEY=${SUPABASE_KEY}" >> .env
+
+      - name: Validate environment variables
+        run: |
+          echo "Checking .env contents:"
+          cat .env
+          echo "Checking SUPABASE_URL:"
+          grep "SUPABASE_URL" .env || (echo "SUPABASE_URL not found" && exit 1)
+          echo "Checking SUPABASE_KEY:"
+          grep "SUPABASE_KEY" .env || (echo "SUPABASE_KEY not found" && exit 1)
+
       - name: Run pyinstaller
         shell: bash -l {0}
         run: |
