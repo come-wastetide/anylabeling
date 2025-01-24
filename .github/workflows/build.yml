@@ -55,7 +55,7 @@ jobs:
           path: dist/
 
   build-macos:
-    runs-on: macos-14.5
+    runs-on: macos-latest
     environment: executable
 
     steps:

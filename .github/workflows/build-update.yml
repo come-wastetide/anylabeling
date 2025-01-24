@@ -79,6 +79,7 @@ jobs:
           cd dist
           create-dmg AnyLabeling.app || test -f AnyLabeling\ 0.0.0.dmg
           mv AnyLabeling\ 0.0.0.dmg AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
+          echo "Created dmg for macOS"
         if: runner.os == 'macOS'
 
       - name: Upload release app on macOS
@@ -86,5 +87,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-executable
-          path: dist/./dist/AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
+          path: /dist/AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
         if: runner.os == 'macOS'
