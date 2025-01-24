@@ -12,8 +12,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        device: [CPU, GPU]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        device: CPU # or [CPU, GPU]
 
     runs-on: ${{ matrix.os }}
 
@@ -66,20 +66,8 @@ jobs:
           pip install pyinstaller
           pyinstaller --noconfirm anylabeling.spec
 
-      - name: Upload release executable on macOS & Linux
-        id: upload_release_executable_macos_linux
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./dist/anylabeling
-          asset_name: AnyLabeling-${{ runner.os }}${{ matrix.device == 'GPU' && '-GPU' || '' }}
-          asset_content_type: application/octet-stream
-        if: runner.os != 'Windows'
-
       - name: Upload Windows executable as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Windows-executable
           path: dist/anylabeling.exe

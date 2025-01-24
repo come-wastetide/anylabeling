@@ -49,7 +49,7 @@ jobs:
           pyinstaller --noconfirm anylabeling.spec
 
       - name: Upload Linux executable as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-executable
           path: dist/
@@ -84,8 +84,17 @@ jobs:
         run: |
           pyinstaller --noconfirm anylabeling.spec
 
-      - name: Upload macOS executable as artifact
+      - name: Create dmg for macOS
+        run: |
+          npm install -g create-dmg
+          cd dist
+          create-dmg AnyLabeling.app || test -f AnyLabeling\ 0.0.0.dmg
+          mv AnyLabeling\ 0.0.0.dmg AnyLabeling.dmg
+
+      - name: Upload release app on macOS
+        id: upload_release_app_macos
         uses: actions/upload-artifact@v3
         with:
           name: macos-executable
-          path: dist/
+          path: dist/./dist/AnyLabeling.dmg
+        if: runner.os == 'macOS'
