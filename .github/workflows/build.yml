@@ -72,10 +72,9 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Install PyQt5 for macOS
-      shell: bash -l {0}
-      run: |
-        conda install -c conda-forge pyqt==5.15.7
-
+        shell: bash -l {0}
+        run: |
+          conda install -c conda-forge pyqt==5.15.7
 
       - name: Export environment variables
         env:
@@ -113,7 +112,6 @@ jobs:
           path: dist/AnyLabeling.dmg
 
   build-windows:
-
     runs-on: windows-latest
     environment: executable
 
