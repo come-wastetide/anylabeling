@@ -61,10 +61,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.11.3"
+          python-version: "3.10.14"
+          miniconda-version: "latest"
 
       - name: Install dependencies
         run: |
@@ -119,10 +119,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: "3.10.14"
+          miniconda-version: "latest"
 
       - name: Install dependencies
         run: |
