@@ -145,4 +145,4 @@ jobs:
           asset_path: ./dist/AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
           asset_name: AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
           asset_content_type: application/octet-stream
-        if: runner.os == 'macOS's
+        if: runner.os == 'macOS'
