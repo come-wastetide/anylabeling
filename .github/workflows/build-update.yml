@@ -73,6 +73,13 @@ jobs:
           path: dist/anylabeling.exe
         if: runner.os == 'Windows'
 
+      - name: Upload Linux executable as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux-executable
+          path: dist/
+        if: runner.os == 'Linux'
+
       - name: Create dmg for macOS
         run: |
           npm install -g create-dmg
@@ -80,6 +87,8 @@ jobs:
           create-dmg AnyLabeling.app || test -f AnyLabeling\ 0.0.0.dmg
           mv AnyLabeling\ 0.0.0.dmg AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
           echo "Created dmg for macOS"
+          pwd
+          cd ..
         if: runner.os == 'macOS'
 
       - name: Upload release app on macOS

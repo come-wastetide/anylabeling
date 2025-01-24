@@ -72,6 +72,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Install PyQt5 for macOS
+      shell: bash -l {0}
+      run: |
+        conda install -c conda-forge pyqt==5.15.7
+
+
       - name: Export environment variables
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -79,6 +85,15 @@ jobs:
         run: |
           echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
           echo "SUPABASE_KEY=$SUPABASE_KEY" >> $GITHUB_ENV
+
+      - name: Validate environment variables
+        run: |
+          echo "Checking .env contents:"
+          cat .env
+          echo "Checking SUPABASE_URL:"
+          grep "SUPABASE_URL" .env || (echo "SUPABASE_URL not found" && exit 1)
+          echo "Checking SUPABASE_KEY:"
+          grep "SUPABASE_KEY" .env || (echo "SUPABASE_KEY not found" && exit 1)
 
       - name: Build Executable for macOS
         run: |
@@ -96,5 +111,49 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-executable
-          path: dist/./dist/AnyLabeling.dmg
-        if: runner.os == 'macOS'
+          path: dist/AnyLabeling.dmg
+
+  build-windows:
+
+    runs-on: windows-latest
+    environment: executable
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Export environment variables
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
+          echo "SUPABASE_KEY=$SUPABASE_KEY" >> $GITHUB_ENV
+
+      - name: Validate environment variables
+        run: |
+          echo "Checking .env contents:"
+          cat .env
+          echo "Checking SUPABASE_URL:"
+          grep "SUPABASE_URL" .env || (echo "SUPABASE_URL not found" && exit 1)
+          echo "Checking SUPABASE_KEY:"
+          grep "SUPABASE_KEY" .env || (echo "SUPABASE_KEY not found" && exit 1)
+
+      - name: Build Executable for Windows
+        run: |
+          pyinstaller --noconfirm anylabeling.spec
+
+      - name: Upload Windows executable as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-executable
