@@ -63,13 +63,13 @@ jobs:
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.10.14"
+          python-version: "3.10.7"
           miniconda-version: "latest"
 
-      - name: Install dependencies
+      - name: Install main
+        shell: bash -l {0}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install .
 
       - name: Install PyQt5 for macOS
         shell: bash -l {0}
@@ -124,10 +124,10 @@ jobs:
           python-version: "3.10.14"
           miniconda-version: "latest"
 
-      - name: Install dependencies
+      - name: Install main
+        shell: bash -l {0}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install .
 
       - name: Export environment variables
         env:

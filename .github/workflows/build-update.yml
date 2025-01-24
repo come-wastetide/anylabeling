@@ -3,7 +3,7 @@ name: New Release
 on:
   push:
     branches:
-      - master
+      - SyrineAI
 
 permissions:
   contents: write
