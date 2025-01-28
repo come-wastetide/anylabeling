@@ -16,6 +16,7 @@ jobs:
         device: [CPU] # or [CPU, GPU]
 
     runs-on: ${{ matrix.os }}
+    environment: executable
 
     steps:
       - uses: actions/checkout@v2
