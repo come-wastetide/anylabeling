@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload release app on macOS
         id: upload_release_app_macos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-executable
           path: /dist/AnyLabeling${{ matrix.device == 'GPU' && '-GPU' || '' }}.dmg
