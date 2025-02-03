@@ -1,9 +1,9 @@
-name: New Release
+name: New Release should work
 
 on:
   push:
     branches:
-      - SyrineAI
+      - master
 
 permissions:
   contents: write
